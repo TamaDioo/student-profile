@@ -2,34 +2,36 @@ name: Build and Push Docker Image to Docker Hub
 
 on:
   push:
-    branches: ["master"]
+    branches:
+      - main # Trigger only on pushes to the main branch
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Log in to Docker Hub
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        # Buildx unlocks BuildKit features, enabling the GHA caching below
+
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Extract metadata (tags, labels)
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ secrets.DOCKER_USERNAME }}/student-profile-app
-          tags: |
-            type=raw,value=latest
-            type=sha
-
-      - name: Build and push Docker image
+      - name: Build and Push
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          # Tags the image with 'latest' and the specific Git commit SHA for version control
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/student-profile-app:latest
+            ${{ secrets.DOCKER_USERNAME }}/student-profile-app:${{ github.sha }}
+          # Dramatically speeds up future builds by caching Docker layers in GitHub Actions
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
