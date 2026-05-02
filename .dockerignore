@@ -16,7 +16,7 @@ build
 .env*.local
 .env
 
-# Docker-related files (you don't need these inside the container)
+# Docker-related files (no need these inside the container)
 Dockerfile
 .dockerignore
 docker-compose.yml
