@@ -35,3 +35,15 @@ jobs:
           # Dramatically speeds up future builds by caching Docker layers in GitHub Actions
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: student-profile-app
+          region: asia-southeast2
+          image: docker.io/${{ secrets.DOCKER_USERNAME }}/student-profile-app:${{ github.sha }}
